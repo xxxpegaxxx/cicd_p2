@@ -1,45 +1,59 @@
-# Starter pipeline    
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-trigger:
-- master
+# Python to Linux Web App on Azure
+# Build your Python project and deploy it to Azure as a Linux Web App.
+# Change python version to one thats appropriate for your application.
+# https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
-# TODO: Replace the agent pool name
-pool: cjvPool
+trigger:
+- main
 
 variables:
-  # TODO: Replace the service connection name
-  azureServiceConnectionId: '1a8887a8-fdb3-4e2f-bd5b-c5e524172202'
-  
-  # TODO: Replace 'mywebapp193576' with the existing Web App name
+  # Azure Resource Manager connection created during pipeline creation
+  azureServiceConnectionId: '4a50042c-c104-43f9-bd2e-6d6c5e605046'
+
+  # Web app name
   webAppName: 'myappcjvp2'
 
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+
   # Environment name
-  environmentName: 'Flask-Deploy-P2'
+  environmentName: 'cicd_p2'
 
   # Project root folder. Point to the folder containing manage.py file.
   projectRoot: $(System.DefaultWorkingDirectory)
+
+  # Python version: 3.7
+  pythonVersion: '3.7'
 
 stages:
 - stage: Build
   displayName: Build stage
   jobs:
   - job: BuildJob
-    pool: cjvPool
-    steps:    
-    - script: |
-        python3.7 -m pip install --upgrade pip
-        python3.7 -m pip install setup
-        python3.7 -m pip install -r requirements.txt
-      workingDirectory: $(projectRoot)
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(pythonVersion)'
+      displayName: 'Use Python $(pythonVersion)'
 
     - script: |
-        export PATH=$HOME/.local/bin:$PATH
+        python -m venv antenv
+        source antenv/bin/activate
+        python -m pip install --upgrade pip
+        pip install setup
+        pip install -r requirements.txt
+      workingDirectory: $(projectRoot)
+      displayName: "Install requirements"
+
+    - script: |
+        python -m venv antenv
+        source antenv/bin/activate
         make install
         make lint
       workingDirectory: $(projectRoot)
-      displayName: 'Run lint tests'
+      displayName: 'Run lint tests CJV'
 
     - task: ArchiveFiles@2
       displayName: 'Archive files'
@@ -60,14 +74,21 @@ stages:
   condition: succeeded()
   jobs:
   - deployment: DeploymentJob
-    pool: cjvPool
+    pool:
+      vmImage: $(vmImageName)
     environment: $(environmentName)
     strategy:
       runOnce:
         deploy:
           steps:
+
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            displayName: 'Use Python version'
+
           - task: AzureWebApp@1
-            displayName: 'Deploy Azure Web App : Flask-Deploy-P2'
+            displayName: 'Deploy Azure Web App : cicd_p2'
             inputs:
               azureSubscription: $(azureServiceConnectionId)
               appName: $(webAppName)

@@ -1,0 +1,30 @@
+# Starter pipeline
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: 'Azure subscription 1(4a50042c-c104-43f9-bd2e-6d6c5e605046)'
+    appType: 'webAppLinux'
+    appName: 'myappcjvp2'
+    deployToSlotOrASE: true
+    resourceGroupName: 'Azuredevops'
+    slotName: 'production'
+    package: '$(System.DefaultWorkingDirectory)/**/*.zip'
+    runtimeStack: 'PYTHON|3.7'
+    startUpCommand: 'python app.py'
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    echo See https://aka.ms/yaml
+  displayName: 'Run a multi-line script'

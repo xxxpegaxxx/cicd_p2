@@ -16,7 +16,7 @@ variables:
   webAppName: 'myappcjvp2'
 
   # Environment name
-  environmentName: 'Flask-Deploy-P2'
+  environmentName: 'myappcjvp2_env'
 
   # Project root folder. Point to the folder containing manage.py file.
   projectRoot: $(System.DefaultWorkingDirectory)

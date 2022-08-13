@@ -30,7 +30,7 @@ stages:
   displayName: Build stage
   jobs:
   - job: BuildJob
-    pool: newPool
+    pool: zadPool
     steps:
     - task: UsePythonVersion@0
       inputs:
@@ -73,7 +73,7 @@ stages:
   condition: succeeded()
   jobs:
   - deployment: DeploymentJob
-    pool: newPool
+    pool: zadPool
     environment: $(environmentName)
     strategy:
       runOnce:

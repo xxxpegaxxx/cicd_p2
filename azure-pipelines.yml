@@ -1,19 +1,20 @@
-# Starter pipeline    
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# Python to Linux Web App on Azure
+# Build your Python project and deploy it to Azure as a Linux Web App.
+# Change python version to one thats appropriate for your application.
+# https://docs.microsoft.com/azure/devops/pipelines/languages/python
+
 trigger:
 - main
 
-# TODO: Replace the agent pool name
-pool: newPool
-
 variables:
-  # TODO: Replace the service connection name
+  # Azure Resource Manager connection created during pipeline creation
   azureServiceConnectionId: 'myappcjvp2'
-  
-  # TODO: Replace 'mywebapp193576' with the existing Web App name
+
+  # Web app name
   webAppName: 'myappcjvp2'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
 
   # Environment name
   environmentName: 'myappcjvp2_env'
@@ -21,25 +22,37 @@ variables:
   # Project root folder. Point to the folder containing manage.py file.
   projectRoot: $(System.DefaultWorkingDirectory)
 
+  # Python version: 3.7
+  pythonVersion: '3.7'
+
 stages:
 - stage: Build
   displayName: Build stage
   jobs:
   - job: BuildJob
     pool: newPool
-    steps:    
-    - script: |
-        python3.7 -m pip install --upgrade pip
-        python3.7 -m pip install setup
-        python3.7 -m pip install -r requirements.txt
-      workingDirectory: $(projectRoot)
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(pythonVersion)'
+      displayName: 'Use Python $(pythonVersion)'
 
     - script: |
-        export PATH=$HOME/.local/bin:$PATH
+        python -m venv antenv
+        source antenv/bin/activate
+        python -m pip install --upgrade pip
+        pip install setup
+        pip install -r requirements.txt
+      workingDirectory: $(projectRoot)
+      displayName: "Install requirements"
+
+    - script: |
+        python -m venv antenv
+        source antenv/bin/activate
         make install
         make lint
       workingDirectory: $(projectRoot)
-      displayName: 'Run lint tests'
+      displayName: 'Run lint tests CJV'
 
     - task: ArchiveFiles@2
       displayName: 'Archive files'
@@ -66,6 +79,12 @@ stages:
       runOnce:
         deploy:
           steps:
+
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            displayName: 'Use Python version'
+
           - task: AzureWebApp@1
             displayName: 'Deploy Azure Web App : myappcjvp2'
             inputs:

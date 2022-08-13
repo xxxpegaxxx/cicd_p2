@@ -30,7 +30,8 @@ stages:
   displayName: Build stage
   jobs:
   - job: BuildJob
-    pool: zadPool
+    pool: 
+      vmImage: $(vmImageName)
     steps:
     - task: UsePythonVersion@0
       inputs:
@@ -73,7 +74,8 @@ stages:
   condition: succeeded()
   jobs:
   - deployment: DeploymentJob
-    pool: zadPool
+    pool: 
+      vmImage: $(vmImageName)
     environment: $(environmentName)
     strategy:
       runOnce:
